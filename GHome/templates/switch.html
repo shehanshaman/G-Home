@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/materialize.min.css') }}">
+
+    <script type="text/javascript" src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <style>
+        a, a:hover {
+            color: white;
+            text-decoration: none;
+        }
+
+        .modal {
+            bottom: inherit;
+        }
+
+        .modal-content {
+            position: initial;
+            background-color: inherit;
+            border-radius: inherit;
+            border: inherit;
+        }
+    </style>
+</head>
+<body>
+{% include 'nav_bar.html' %}
+
+<div class="container limiter" style="min-height: 427px;">
+
+    <div id="modal1" class="modal">
+        <form action="{{ url_for('home.trigger_add') }}" method="POST">
+            <div class="modal-content">
+                <h4>{{ name }}</h4>
+
+                <div class="row">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <p>Trigger time</p>
+                        </div>
+                        <div class="time col-sm-6">
+                            <input type="time" value="" step="1800" id="add_time" name="trigger_time">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <p>Trigger Value</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <select name="trigger_value" id="add_value" class="form-control"
+                                    style="font-family: monospace;">
+                                <option value="0">Off</option>
+                                <option value="1">On</option>
+                            </select>
+                        </div>
+                    </div>
+                    <input type="hidden" id="switch_id" value="{{ switch_id }}" name="switch_id">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn modal-trigger" type="submit">Submit</button>
+                <a href="#!" class="modal-close waves-effect waves-green btn-flat">Agree</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="step-content">
+        <div class="row head-word">
+            <h3 id="h3-head-1" class="card__title" style="text-align: left;color: #26a69a;font-family: monospace;">
+                {{ name }}</h3>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for trigger in trigger_list %}
+        <div class="row" style="width: 100%" id="trigger_{{ trigger[0] }}">
+            <div class="trigger">
+                <!--<span class="col-sm-3">{{ trigger[3] }}</span>-->
+                <div class="time col-sm-3">
+                    <input type="time" value="{{ trigger[3] }}" step="1800" id="trigger_time_{{ trigger[0] }}">
+                </div>
+                <div class="md-from col-sm-2">
+                    <select name="trigger_value" id="trigger_value_{{ trigger[0] }}" class="form-control"
+                            style="font-family: monospace;">
+                        <option value="0" {% if trigger[1]== 0 %} selected {% endif %}>Off</option>
+                        <option value="1" {% if trigger[1]== 1 %} selected {% endif %}>On</option>
+                    </select>
+                </div>
+
+                <div class="md-from col-sm-3">
+                    <select name="trigger_available" id="trigger_available_{{ trigger[0] }}" class="form-control"
+                            style="font-family: monospace;">
+                        <option value="0" {% if trigger[2]== 0 %} selected {% endif %}>Disable</option>
+                        <option value="1" {% if trigger[2]== 1 %} selected {% endif %}>Enable</option>
+                    </select>
+                </div>
+                <div class="col-sm-2">
+                    <button id="swich_button_" class="waves-effect waves-dark btn " type="button"
+                            onclick="update_trigger('{{ trigger[0] }}')">
+                        Update
+                    </button>
+                </div>
+
+                <div class="col-sm-2">
+                    <button id="delete_trigger" class="waves-effect waves-dark btn " type="button"
+                            onclick="delete_trigger('{{ trigger[0] }}')">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+    </div>
+
+    <div class="row center">
+        <!--<button id="add_trigger" class="waves-effect waves-dark btn " type="button">-->
+        <!--<a class="waves-effect waves-light btn modal-trigger" href="#modal1"></a>-->
+        <!--</button>-->
+        <button data-target="modal1" class="btn modal-trigger" onclick="add_trigger_modal()">Create New Trigger</button>
+    </div>
+</div>
+
+<footer class="page-footer"">
+    <div class="container">
+        <div class="row">
+            <div class="col l6 s12">
+                <h5 class="white-text">Footer Content</h5>
+                <p class="grey-text text-lighten-4">You can use rows and columns here to organize your footer
+                    content.</p>
+            </div>
+            <div class="col l4 offset-l2 s12">
+                <h5 class="white-text">Links</h5>
+                <ul>
+                    <li><a class="grey-text text-lighten-3" href="#!">Link 1</a></li>
+                    <li><a class="grey-text text-lighten-3" href="#!">Link 2</a></li>
+                    <li><a class="grey-text text-lighten-3" href="#!">Link 3</a></li>
+                    <li><a class="grey-text text-lighten-3" href="#!">Link 4</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="footer-copyright">
+        <div class="container">
+            © 2014 Copyright Text
+            <a class="grey-text text-lighten-4 right" href="#!">More Links</a>
+        </div>
+    </div>
+</footer>
+</body>
+<script type="text/javascript" src="{{ url_for('static', filename='js/jquery/jquery.min.js') }}"></script>
+
+<!-- Compiled and minified JavaScript -->
+<script type="text/javascript" src="{{ url_for('static', filename='js/materialize/materialize.min.js') }}"></script>
+<!-- Materializecss compiled and minified JavaScript -->
+<script type="text/javascript" src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
+<script>
+    function update_trigger(id) {
+//        id = 't_' + id;
+        trigger_time = $('#trigger_time_' + id).val();
+        trigger_value = $('#trigger_value_' + id).val();
+        trigger_available = $('#trigger_available_' + id).val();
+
+        var time = trigger_time.split(':');
+        var minutes = (+time[0]) * 60 + (+time[1]);
+
+
+        $.get("/trigger/update/", {
+            trigger_id: id,
+            value: trigger_value,
+            time: minutes,
+            is_enable: trigger_available
+        }, function (data, status) {
+            console.log(trigger_time, minutes, trigger_value, trigger_available);
+        });
+    }
+
+    function delete_trigger(id) {
+
+        $.get("/trigger/delete/", {trigger_id: id}, function (data, status) {
+//            console.log(trigger_time, minutes, trigger_value, trigger_available);
+            $('#trigger_' + id).remove();
+        });
+    }
+
+    function add_trigger_modal() {
+        $('#modal1').openModal();
+    }
+</script>
+
+<!--<script type="text/javascript">-->
+<!--$(document).ready(function () {-->
+<!--$('#submit').click(function () {-->
+<!--console.log("click");-->
+
+
+<!--var request = new XMLHttpRequest();-->
+
+<!--request.open('GET', 'http://188.166.206.43/8000fc09e23f49c68325e4d7c2c718f2/update/D12?value=1');-->
+
+<!--request.onreadystatechange = function () {-->
+<!--if (this.readyState === 4) {-->
+<!--console.log('Status:', this.status);-->
+<!--console.log('Headers:', this.getAllResponseHeaders());-->
+<!--console.log('Body:', this.responseText);-->
+<!--}-->
+<!--};-->
+
+<!--request.send();-->
+<!--});-->
+<!--});-->
+<!--</script>-->
+</html>

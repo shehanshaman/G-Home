@@ -1,0 +1,10 @@
+<nav>
+    <div class="nav-wrapper">
+        <a href="#" class="brand-logo">Smart Home</a>
+        <ul id="nav-mobile" class="right hide-on-med-and-down">
+            <li><a href="{{ url_for('home.index') }}">Home</a></li>
+            <li><a href="{{ url_for('admin.index') }}">Admin</a></li>
+            <li><a href="#" onclick="signOut()">Sign Out</a></li>
+        </ul>
+    </div>
+</nav>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin | Switch</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/materialize.min.css') }}">
+    <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>-->
+    <script type="text/javascript" src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <style>
+        a, a:hover {
+            color: white;
+            text-decoration: none;
+        }
+
+        .modal {
+            bottom: inherit;
+        }
+
+        .modal-content {
+            position: initial;
+            background-color: inherit;
+            border-radius: inherit;
+            border: inherit;
+        }
+
+    </style>
+</head>
+<body>
+{% include 'nav_bar.html' %}
+<div class="container limiter" style="min-height: 427px;">
+    <div id="modal1" class="modal">
+        <form action="{{ url_for('admin.create_switch') }}" method="POST">
+            <div class="modal-content">
+                <h4>Create New Switch</h4>
+
+                <div class="row">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <p>Name</p>
+                        </div>
+                        <div class="time col-sm-6">
+                            <input name="name" id="name" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <p>Pin</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <input name="pin" id="pin" required>
+                        </div>
+                    </div>
+                    <input type="hidden" id="username" value="{{ username }}" name="username">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn modal-trigger" type="submit">Submit</button>
+                <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
+            </div>
+        </form>
+    </div>
+    <div class="step-content">
+        <div class="row head-word">
+            <h3 id="h3-head-1" class="card__title"
+                style="text-align: center;color: #26a69a;font-family: monospace;">
+                {{ username }}: Switches</h3>
+        </div>
+    </div>
+    <div class="row">
+        {% for switch in switch_list %}
+        <div class="row" style="width: 80%" id="switch_{{ switch[0] }}">
+            <div class="col-sm-5">
+                <input name="name" id="name_{{ switch[0] }}" value="{{ switch[1] }}" required>
+            </div>
+            <div class="col-sm-3">
+                <input name="pin" id="pin_{{ switch[0] }}" value="{{ switch[2] }}" required>
+            </div>
+            <div class="col-sm-2">
+                <button id="swich_change" class="waves-effect waves-dark btn " type="button"
+                        onclick="update_switch('{{ switch[0] }}')">
+                    Update
+                </button>
+            </div>
+            <div class="col-sm-2">
+                <button id="swich_delete" class="waves-effect waves-dark btn " type="button"
+                        onclick="delete_switch('{{ switch[0] }}')">
+                    Delete
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="row center">
+        <button data-target="modal1" class="btn modal-trigger" onclick="add_switch_modal()">Create New Switch</button>
+    </div>
+
+</div>
+
+{% include 'footer.html' %}
+</body>
+<script type="text/javascript" src="{{ url_for('static', filename='js/jquery/jquery.min.js') }}"></script>
+<!-- Compiled and minified JavaScript -->
+<script type="text/javascript" src="{{ url_for('static', filename='js/materialize/materialize.min.js') }}"></script>
+<!-- Materializecss compiled and minified JavaScript -->
+<script type="text/javascript" src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
+<script>
+    function update_switch(id) {
+        name = $('#name_' + id).val();
+        pin = $('#pin_' + id).val();
+
+        $.get("/admin/update/switch", {
+            name: name,
+            pin: pin,
+            id: id
+        }, function (data, status) {
+            console.log(data);
+        });
+    }
+
+    function delete_switch(id) {
+        $.get("/admin/delete/switch", {id: id}, function (data, status) {
+            console.log(data);
+            $('#switch_' + id).remove();
+        });
+    }
+
+    function add_switch_modal() {
+        $('#modal1').openModal();
+    }
+</script>
+
+<!--<script type="text/javascript">-->
+<!--$(document).ready(function () {-->
+<!--$('#submit').click(function () {-->
+<!--console.log("click");-->
+
+
+<!--var request = new XMLHttpRequest();-->
+
+<!--request.open('GET', 'http://188.166.206.43/8000fc09e23f49c68325e4d7c2c718f2/update/D12?value=1');-->
+
+<!--request.onreadystatechange = function () {-->
+<!--if (this.readyState === 4) {-->
+<!--console.log('Status:', this.status);-->
+<!--console.log('Headers:', this.getAllResponseHeaders());-->
+<!--console.log('Body:', this.responseText);-->
+<!--}-->
+<!--};-->
+
+<!--request.send();-->
+<!--});-->
+<!--});-->
+<!--</script>-->
+</html>

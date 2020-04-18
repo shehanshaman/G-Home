@@ -1,7 +1,7 @@
-$(document).ready(function () {
-    $(".dropdown-trigger").dropdown();
-    $('.sidenav').sidenav();
-});
+// $(document).ready(function () {
+//     $(".dropdown-trigger").dropdown();
+//     $('.sidenav').sidenav();
+// });
 
 //Google signOut
 function signOut() {

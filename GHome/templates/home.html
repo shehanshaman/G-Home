@@ -3,74 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <title>Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/materialize.min.css') }}">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>-->
+    <script type="text/javascript" src="{{ url_for('static', filename='js/main.js') }}"></script>
 
-    <script type="text/javascript">
-        $(document).ready(function () {
-            $('#submit').click(function () {
-                console.log("click");
-
-
-                var request = new XMLHttpRequest();
-
-                request.open('GET', 'http://188.166.206.43/8000fc09e23f49c68325e4d7c2c718f2/update/D12?value=1');
-
-                request.onreadystatechange = function () {
-                    if (this.readyState === 4) {
-                        console.log('Status:', this.status);
-                        console.log('Headers:', this.getAllResponseHeaders());
-                        console.log('Body:', this.responseText);
-                    }
-                };
-
-                request.send();
-            });
-        });
-    </script>
+    <style>
+        a, a:hover {
+            color: white;
+            text-decoration: none;
+        }
+    </style>
 </head>
 <body>
-<nav>
-    <div class="nav-wrapper">
-        <a href="#" class="brand-logo">Smart Home</a>
-        <ul id="nav-mobile" class="right hide-on-med-and-down">
-            <li><a href="sass.html">Sass</a></li>
-            <li><a href="badges.html">Components</a></li>
-            <li><a href="collapsible.html">JavaScript</a></li>
-        </ul>
+{% include 'nav_bar.html' %}
+<div class="container limiter" style="min-height: 427px;">
+    <div class="step-content">
+        <div class="row head-word">
+            <h3 id="h3-head-1" class="card__title" style="text-align: center;color: #26a69a;font-family: monospace;">
+                Dashboard</h3>
+        </div>
     </div>
-</nav>
-<form>
-    Data:<br>
-    <input id="data" type="text" name="data" value="Mickey"><br>
-    <input id="submit" type="button" value="Submit">
-</form>
+    <div class="row">
+        {% for switch in switch_list %}
+        <div class="row" style="width: 60%">
+            <div class="switch">
+                <span class="col-sm-4">switch: {{ switch[1] }}</span>
+                <label id="select_normalize_div" class="col-sm-4" onchange="update_switch( '{{ switch[0] }}' )">
+                    Off
+                    <input type="checkbox" value="false" id="s_{{ switch[0] }}">
+                    <span class="lever"></span>
+                    On
+                </label>
+                <div class="col-sm-4">
+                    <button id="swich_button_" class="waves-effect waves-dark btn " type="button">
+                        <a href="./{{ switch[0] }}/switch">Change</a>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
 
-<footer class="page-footer" style=" position:absolute; bottom:0; width: 100%">
-    <div class="container">
-        <div class="row">
-            <div class="col l6 s12">
-                <h5 class="white-text">Footer Content</h5>
-                <p class="grey-text text-lighten-4">You can use rows and columns here to organize your footer
-                    content.</p>
-            </div>
-            <div class="col l4 offset-l2 s12">
-                <h5 class="white-text">Links</h5>
-                <ul>
-                    <li><a class="grey-text text-lighten-3" href="#!">Link 1</a></li>
-                    <li><a class="grey-text text-lighten-3" href="#!">Link 2</a></li>
-                    <li><a class="grey-text text-lighten-3" href="#!">Link 3</a></li>
-                    <li><a class="grey-text text-lighten-3" href="#!">Link 4</a></li>
-                </ul>
-            </div>
-        </div>
+
     </div>
-    <div class="footer-copyright">
-        <div class="container">
-            © 2014 Copyright Text
-            <a class="grey-text text-lighten-4 right" href="#!">More Links</a>
-        </div>
-    </div>
-</footer>
+</div>
+{% include 'footer.html' %}
 </body>
+<script>
+    function update_switch(id) {
+        id_name = 's_' + id;
+        console.log(document.getElementById(id_name).value);
+        document.getElementById(id_name).value = !(document.getElementById(id_name).value == "true");
+
+//        Send request
+    }
+</script>
+
+<!--<script type="text/javascript">-->
+<!--$(document).ready(function () {-->
+<!--$('#submit').click(function () {-->
+<!--console.log("click");-->
+
+
+<!--var request = new XMLHttpRequest();-->
+
+<!--request.open('GET', 'http://188.166.206.43/8000fc09e23f49c68325e4d7c2c718f2/update/D12?value=1');-->
+
+<!--request.onreadystatechange = function () {-->
+<!--if (this.readyState === 4) {-->
+<!--console.log('Status:', this.status);-->
+<!--console.log('Headers:', this.getAllResponseHeaders());-->
+<!--console.log('Body:', this.responseText);-->
+<!--}-->
+<!--};-->
+
+<!--request.send();-->
+<!--});-->
+<!--});-->
+<!--</script>-->
 </html>

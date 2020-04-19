@@ -1,4 +1,5 @@
 from GHome.db import get_db
+import datetime
 
 def get_tokens():
     db = get_db()
@@ -93,3 +94,17 @@ def get_token(username):
         "SELECT * FROM token WHERE username = ?", (username,)
     ).fetchone()
     return token
+
+def get_schedule_work():
+    now = datetime.datetime.now()
+
+    time = now.hour * 60 + now.minute
+    time = int(time/30) * 30
+
+    db = get_db()
+    trigger = db.execute(
+        "SELECT token.auth_token, switch.pin, trigger.value, trigger.time FROM trigger, switch, token "
+        "WHERE trigger.switch_id = switch.id AND switch.username = token.username AND trigger.is_enable = 1 "
+        "AND trigger.time > ? AND trigger.time <= ?", (time, time+30),
+    ).fetchall()
+    return trigger

@@ -1,9 +1,14 @@
+import time
 from flask import Blueprint, render_template, request, redirect, url_for, current_app
+
+import atexit
 
 from GHome import handler
 from GHome.auth import login_required
+import urllib3
 
 bp = Blueprint("admin", __name__, url_prefix="/admin")
+
 
 @bp.route("/")
 @login_required
@@ -21,6 +26,7 @@ def index():
 
     return render_template("admin.html", users_list=users_list, scheduler_state=scheduler_state)
 
+
 @bp.route("/<username>/", methods=("GET", "POST"))
 @login_required
 def switches(username):
@@ -36,7 +42,8 @@ def switches(username):
 
     return render_template("admin_switch.html", switch_list=switch_list, username=username)
 
-@bp.route("/add/token", methods = ['POST'])
+
+@bp.route("/add/token", methods=['POST'])
 @login_required
 def add_token():
     username = request.form["username"]
@@ -46,7 +53,8 @@ def add_token():
 
     return redirect(url_for('admin.index'))
 
-@bp.route("/delete/token", methods = ['GET'])
+
+@bp.route("/delete/token", methods=['GET'])
 @login_required
 def delete_token():
     id = request.args.get("id")
@@ -55,7 +63,8 @@ def delete_token():
 
     return '1'
 
-@bp.route("/update/switch", methods = ['GET'])
+
+@bp.route("/update/switch", methods=['GET'])
 @login_required
 def update_switch():
     id = request.args.get("id")
@@ -66,7 +75,8 @@ def update_switch():
 
     return '1'
 
-@bp.route("/delete/switch", methods = ['GET'])
+
+@bp.route("/delete/switch", methods=['GET'])
 @login_required
 def delete_switch():
     id = request.args.get("id")
@@ -75,7 +85,8 @@ def delete_switch():
 
     return '1'
 
-@bp.route("/create/switch", methods = ['POST'])
+
+@bp.route("/create/switch", methods=['POST'])
 @login_required
 def create_switch():
     username = request.form["username"]
@@ -84,12 +95,46 @@ def create_switch():
 
     handler.create_switch_by_admin(username, name, pin)
 
-    return redirect('/admin/'+username+'/')
+    return redirect('/admin/' + username + '/')
 
-@bp.route("/scheduler/", methods = ['GET'])
+
+@bp.route("/scheduler/", methods=['GET'])
 @login_required
 def change_scheduler():
     s = request.args.get("s")
     current_app.config['SCHEDULER_STATE'] = int(s)
 
+    if s == '1':
+        scheduler = current_app.config['SCHEDULER']
+        app = current_app.app_context()
+        scheduler.add_job(func=do_schedule, trigger="interval", seconds=3, id='cron_job', args=[app])
+        scheduler.start()
+    else:
+        scheduler = current_app.config['SCHEDULER']
+        # atexit.register(lambda: scheduler.shutdown())
+        scheduler.remove_job('cron_job')
+
     return redirect(url_for('admin.index'))
+
+
+def print_date_time():
+    print(time.strftime("%A, %d. %B %Y %I:%M:%S %p"))
+
+
+def do_schedule(cont):
+    app = cont.app
+    with app.app_context():
+        triggers = handler.get_schedule_work()
+        for trigger in triggers:
+            send_request(trigger['auth_token'], trigger['pin'], str(trigger['value']))
+
+    print(time.strftime("%A, %d. %B %Y %I:%M:%S %p"))
+
+
+def send_request(auth_token, pin, value):
+    http = urllib3.PoolManager()
+    url = current_app.config['BLYNK_HOST'] + auth_token + "/update/" + pin + "?value=" + value
+    r = http.request('GET', url)
+    data = r.data
+
+    return data

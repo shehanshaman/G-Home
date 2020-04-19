@@ -59,8 +59,8 @@ INSERT INTO trigger (switch_id, value, time) VALUES
   (2, 1, 60),
   (2, 0, 20),
   (3, 0, 160),
-  (3, 1, 260),
-  (1, 1, 40);
+  (3, 1, 1250),
+  (1, 1, 1210);
 
 INSERT INTO token (username, auth_token) VALUES ('user', 'abc123');
 

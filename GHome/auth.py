@@ -1,5 +1,6 @@
 import functools
 import os
+import random
 
 from datetime import datetime
 
@@ -17,6 +18,8 @@ from werkzeug.security import generate_password_hash
 
 from GHome.db import get_db
 from pathlib import Path
+from flask_mail import Message
+import string
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -78,9 +81,18 @@ def register():
 
             create_user_db(db, username, password, given_name, '', 0)
             if "@" in username:
+                user_id = UserData.get_user_id(username)
+                verify_key = randomString()
+                db.execute(
+                    "INSERT INTO verify (user_id, subject, verify_key) VALUES (?, ?, ?)",
+                    (user_id, 'verify', verify_key),
+                )
+                db.commit()
+                url = "http://" + str(request.host) + "/auth/verify/?id=" + str(user_id) + "&key=" + verify_key
+                send_mail("verify", url, username, "Verify email address")
 
-                message  = given_name + ", Your account created. Verify your email"
-                flash(message)
+            message  = given_name + ", Your account created. Verify your email"
+            flash(message)
             return redirect(url_for("auth.login"))
 
         flash(error)
@@ -153,6 +165,132 @@ def glogin():
 
     return redirect(url_for("index"))
 
+@bp.route("/verify/", methods=["GET"])
+def verify():
+    user_id = request.args.get('id')
+    verify_key = request.args.get('key')
+
+    db = get_db()
+    verify_data = db.execute(
+        "SELECT * FROM verify WHERE user_id = ? AND subject = 'verify'", (user_id,)
+    ).fetchone()
+
+    e = ["Not Found",[]]
+
+    if verify_data is None:
+        e[1].append("Not registered user.")
+
+    elif verify_key == verify_data['verify_key']:
+        db.execute(
+            "UPDATE user SET is_verified = ? WHERE id = ?",
+            (1, user_id),
+        )
+        db.commit()
+
+        db.execute(
+            "DELETE FROM verify WHERE user_id = ? AND subject = 'verify'",
+            (user_id),
+        )
+        db.commit()
+        flash("Your email has been verified.")
+        return redirect(url_for("auth.login"))
+
+    else:
+        e[1].append("Wrong Key.")
+
+    return render_template("error.html", errors=e)
+
+@bp.route("/reset", methods = ["POST", "GET"])
+def reset_request():
+
+    if request.method == "POST":
+        username = request.form["username"]
+        db = get_db()
+        user = db.execute(
+            "SELECT * FROM user WHERE username = ? AND is_verified = 1", (username,)
+        ).fetchone()
+
+        if user is None:
+            flash("Wrong username.")
+            return render_template("auth/reset_request.html")
+
+        user_id = user["id"]
+
+        verify_key = randomString()
+
+        db.execute(
+            "INSERT INTO verify (user_id, subject, verify_key) VALUES (?, ?, ?)",
+            (user_id, 'reset', verify_key),
+        )
+        db.commit()
+        url = "http://" + str(request.host) + "/auth/reset/?id=" + str(user_id) + "&key=" + verify_key
+        send_mail("reset", url, username, "Reset Password G-Home")
+
+        message = "Please, check your email."
+        flash(message)
+
+        return redirect(url_for('auth.login'))
+
+    return render_template("auth/reset_request.html")
+
+@bp.route("/reset/", methods = ["GET", "POST"])
+def reset_key_verify():
+
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+
+        #Update password
+        db = get_db()
+        db.execute(
+            "UPDATE user SET password = ? WHERE username = ?",
+            (generate_password_hash(password), username),
+        )
+        db.commit()
+
+        #Get user id
+        user = db.execute(
+            "SELECT * FROM user WHERE username = ?", (username,)
+        ).fetchone()
+
+        user_id = int(user['id'])
+
+        #Delete query in verify
+        db.execute(
+            "DELETE FROM verify WHERE user_id = ? AND subject = 'reset'",
+            (user_id,)
+        )
+        db.commit()
+
+        flash("Your password has been reset.")
+        return redirect(url_for("auth.login"))
+
+
+    user_id = request.args.get('id')
+    verify_key = request.args.get('key')
+
+    db = get_db()
+    verify_data = db.execute(
+        "SELECT * FROM verify WHERE user_id = ? AND subject = 'reset' ORDER BY id DESC", (user_id,)
+    ).fetchone()
+
+    if verify_data is None:
+        flash("You don't request for reset.")
+        return redirect(url_for("auth.login"))
+
+    elif verify_key == verify_data['verify_key']:
+
+        flash("Your email has been verified, Enter new password.")
+
+        user = db.execute(
+            "SELECT * FROM user WHERE id = ?", (user_id,)
+        ).fetchone()
+
+        return render_template("auth/reset.html", email = user["username"])
+
+    else:
+        flash("Wrong url for rest verification.")
+        return redirect(url_for("auth.login"))
 
 def create_user_db(db, username, password, given_name, image_url, is_verified):
     db.execute(
@@ -170,3 +308,40 @@ def update_last_login(db, user_id):
     )
     db.commit()
 
+def send_mail(subject, url, recipient, senders_subject):
+    msg = Message(senders_subject,
+                  sender="no-reply@GeNet.com",
+                  recipients=[recipient])
+
+    message = get_mail_message(subject)
+    message = message.replace("{{action_url}}", url)
+    msg.html = message
+    mail = current_app.config["APP_ALZ"].mail
+    s = mail.send(msg)
+
+    return s
+
+def randomString(stringLength=10):
+    """Generate a random string of fixed length """
+    letters = string.ascii_lowercase
+    return ''.join(random.choice(letters) for i in range(stringLength))
+
+
+def get_mail_message(subject):
+    db = get_db()
+    m = db.execute(
+        "SELECT message FROM mail_template WHERE subject = ?",
+        (subject,),
+    ).fetchone()
+    return m['message']
+
+class UserData:
+
+    def get_user_id(username):
+        db = get_db()
+        user = db.execute(
+            "SELECT * FROM user WHERE username = ?", (username,)
+        ).fetchone()
+        if user is not None:
+            return user["id"]
+        return None

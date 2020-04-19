@@ -1,0 +1,6 @@
+set FLASK_APP=GHome
+set FLASK_ENV=development
+flask init-db
+flask run
+
+pip install -r requirements.txt

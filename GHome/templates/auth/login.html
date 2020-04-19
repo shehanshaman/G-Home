@@ -108,7 +108,7 @@
                     <input type="submit" value="Log In" class="waves-effect waves-dark btn">
                 </form>
                 <div class="row center">
-                    <label>Forgot Password? <a href="#">Reset Password</a></label>
+                    <label>Forgot Password? <a href="{{ url_for('auth.reset_request') }}">Reset Password</a></label>
                 </div>
             </div>
         </div>
@@ -121,11 +121,11 @@
 
     <div class="row center">
         <div class="g_login">
-            <div class="row">
-                <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark" data-width="auto"></div>
-            </div>
+{#            <div class="row">#}
+{#                <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark" data-width="auto"></div>#}
+{#            </div>#}
             <div class="">
-                <label>Don't have an Account? <a href="#">Sign Up</a></label>
+                <label>Don't have an Account? <a href="{{ url_for('auth.register') }}">Sign Up</a></label>
             </div>
         </div>
 

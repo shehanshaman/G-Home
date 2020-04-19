@@ -107,7 +107,7 @@ def change_scheduler():
     if s == '1':
         scheduler = current_app.config['SCHEDULER']
         app = current_app.app_context()
-        scheduler.add_job(func=do_schedule, trigger="interval", seconds=3, id='cron_job', args=[app])
+        scheduler.add_job(func=do_schedule, trigger="interval", minutes=30, id='cron_job', args=[app])
         scheduler.start()
     else:
         scheduler = current_app.config['SCHEDULER']

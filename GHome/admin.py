@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, current_app
 
 from GHome import handler
 from GHome.auth import login_required
@@ -17,7 +17,9 @@ def index():
 
         users_list.append([user_id, username, auth_token])
 
-    return render_template("admin.html", users_list=users_list)
+    scheduler_state = current_app.config['SCHEDULER_STATE']
+
+    return render_template("admin.html", users_list=users_list, scheduler_state=scheduler_state)
 
 @bp.route("/<username>/", methods=("GET", "POST"))
 @login_required
@@ -83,3 +85,11 @@ def create_switch():
     handler.create_switch_by_admin(username, name, pin)
 
     return redirect('/admin/'+username+'/')
+
+@bp.route("/scheduler/", methods = ['GET'])
+@login_required
+def change_scheduler():
+    s = request.args.get("s")
+    current_app.config['SCHEDULER_STATE'] = int(s)
+
+    return redirect(url_for('admin.index'))

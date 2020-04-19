@@ -65,6 +65,26 @@
         </form>
     </div>
 
+    <div class="row">
+        <div class="col-sm-3">
+            <h5 class="card__title" style="text-align: left;color: #26a69a;">Scheduler: </h5>
+        </div>
+        {% if scheduler_state %}
+        <div class="col-sm-4">
+            <h5 class="col-sm-6" style="text-align: left; color: green">Running</h5>
+            <a class="col-sm-6" href="{{ url_for('admin.change_scheduler') }}?s=0" style="color: blue; margin-top: 27px">Stop</a>
+        </div>
+
+        {% else %}
+        <div class="col-sm-4">
+            <h5 class="col-sm-6" style="text-align: left; color: red">Stopped</h5>
+            <a class="col-sm-6" href="{{ url_for('admin.change_scheduler') }}?s=1" style="color: blue; margin-top: 27px">Start</a>
+        </div>
+
+        {% endif %}
+
+    </div>
+
     <div class="step-content">
         <div class="row head-word">
             <h3 id="h3-head-1" class="card__title" style="text-align: left;color: #26a69a;font-family: monospace;">

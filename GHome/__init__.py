@@ -8,6 +8,8 @@ def create_app(test_config=None):
         # a default secret that should be overridden by instance config
         SECRET_KEY="dev",
         DATABASE=os.path.join(app.instance_path, "GHome.sqlite"),
+        BLYNK_HOST = "http://188.166.206.43/",
+        # BLYNK_HOST = 'http:127.0.0.1:8080/'
     )
 
     try:

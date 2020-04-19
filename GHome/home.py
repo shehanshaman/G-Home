@@ -1,4 +1,4 @@
-from flask import Blueprint, g, redirect, request, url_for
+from flask import Blueprint, g, redirect, request, url_for, current_app, flash
 from flask import render_template
 
 from GHome import handler
@@ -11,14 +11,24 @@ bp = Blueprint("home", __name__)
 def index():
     username = g.user['username']
     switches = handler.get_switch(username)
+    token = handler.get_token(username)
+
+    if token:
+        auth_token = token['auth_token']
+    else:
+        flash("You don't have token.")
+        auth_token = ''
+
+    host = current_app.config["BLYNK_HOST"]
 
     switch_list = []
     for switch in switches:
         id = switch['id']
         name = switch['name']
-        switch_list.append([id, name])
+        pin = switch['pin']
+        switch_list.append([id, name, pin])
 
-    return render_template("home.html", switch_list=switch_list)
+    return render_template("home.html", switch_list=switch_list, blynk_host=host, token =auth_token )
 
 @bp.route("/<int:id>/switch", methods=("GET", "POST"))
 def switch_details(id):

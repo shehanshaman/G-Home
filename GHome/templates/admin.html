@@ -6,8 +6,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/materialize.min.css') }}">
 
-    <script type="text/javascript" src="{{ url_for('static', filename='js/main.js') }}"></script>
-
     <style>
         a, a:hover {
             color: white;
@@ -23,6 +21,10 @@
             background-color: inherit;
             border-radius: inherit;
             border: inherit;
+        }
+
+        .page-footer {
+            padding-top: 0px;
         }
     </style>
 </head>
@@ -66,11 +68,11 @@
     <div class="step-content">
         <div class="row head-word">
             <h3 id="h3-head-1" class="card__title" style="text-align: left;color: #26a69a;font-family: monospace;">
-                Tokens</h3>
+                Settings: Tokens</h3>
         </div>
     </div>
 
-    <div class="row">
+    <div class="row" style="border: 2px solid #26a69a;padding: 30px; border-radius: 25px;">
         {% for user in users_list %}
         <div class="row" style="width: 100%" id="user_{{ user[0] }}">
             <div class="col-sm-4">
@@ -92,46 +94,21 @@
             </div>
         </div>
         {% endfor %}
-
+        <div class="row center">
+            <button data-target="modal1" class="btn modal-trigger" onclick="add_user_modal()">Create New User</button>
+        </div>
     </div>
 
-    <div class="row center">
-        <button data-target="modal1" class="btn modal-trigger" onclick="add_user_modal()">Create New User</button>
-    </div>
+
 </div>
 {% include 'footer.html' %}
 </body>
-<script type="text/javascript" src="{{ url_for('static', filename='js/jquery/jquery.min.js') }}"></script>
 
-<!-- Compiled and minified JavaScript -->
-<script type="text/javascript" src="{{ url_for('static', filename='js/materialize/materialize.min.js') }}"></script>
-<!-- Materializecss compiled and minified JavaScript -->
-<script type="text/javascript" src="{{ url_for('static', filename='js/materialize.min.js') }}"></script>
 <script>
-    //    function update_trigger(id) {
-    ////        id = 't_' + id;
-    //        trigger_time = $('#trigger_time_' + id).val();
-    //        trigger_value = $('#trigger_value_' + id).val();
-    //        trigger_available = $('#trigger_available_' + id).val();
-    //
-    //        var time = trigger_time.split(':');
-    //        var minutes = (+time[0]) * 60 + (+time[1]);
-    //
-    //
-    //        $.get("/trigger/update/", {
-    //            trigger_id: id,
-    //            value: trigger_value,
-    //            time: minutes,
-    //            is_enable: trigger_available
-    //        }, function (data, status) {
-    //            console.log(trigger_time, minutes, trigger_value, trigger_available);
-    //        });
-    //    }
 
     function delete_token(id) {
 
         $.get("./delete/token", {id: id}, function (data, status) {
-//            console.log(trigger_time, minutes, trigger_value, trigger_available);
             $('#user_' + id).remove();
         });
     }
@@ -140,27 +117,4 @@
         $('#modal1').openModal();
     }
 </script>
-
-<!--<script type="text/javascript">-->
-<!--$(document).ready(function () {-->
-<!--$('#submit').click(function () {-->
-<!--console.log("click");-->
-
-
-<!--var request = new XMLHttpRequest();-->
-
-<!--request.open('GET', 'http://188.166.206.43/8000fc09e23f49c68325e4d7c2c718f2/update/D12?value=1');-->
-
-<!--request.onreadystatechange = function () {-->
-<!--if (this.readyState === 4) {-->
-<!--console.log('Status:', this.status);-->
-<!--console.log('Headers:', this.getAllResponseHeaders());-->
-<!--console.log('Body:', this.responseText);-->
-<!--}-->
-<!--};-->
-
-<!--request.send();-->
-<!--});-->
-<!--});-->
-<!--</script>-->
 </html>

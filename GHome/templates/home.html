@@ -5,80 +5,141 @@
     <title>Home</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/materialize.min.css') }}">
-    <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>-->
-    <script type="text/javascript" src="{{ url_for('static', filename='js/main.js') }}"></script>
 
     <style>
         a, a:hover {
             color: white;
             text-decoration: none;
         }
+
+        .page-footer {
+            padding-top: 0px;
+        }
+
+        .character-counter {
+            visibility: hidden;
+        }
+
+        .flash {
+            margin: 1em 0;
+            padding: 1em;
+            background: #f6ac8f;
+            border: 1px solid #5c0202;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
 {% include 'nav_bar.html' %}
 <div class="container limiter" style="min-height: 427px;">
+
+    {% for message in get_flashed_messages() %}
+    <div class="row">
+        <div class="flash">{{ message }}</div>
+    </div>
+    {% endfor %}
+
+    {% if switch_list | length > 0 %}
     <div class="step-content">
         <div class="row head-word">
             <h3 id="h3-head-1" class="card__title" style="text-align: center;color: #26a69a;font-family: monospace;">
                 Dashboard</h3>
         </div>
     </div>
-    <div class="row">
+
+    <div class="row" style="border: 2px solid #26a69a;padding: 30px; border-radius: 25px;">
         {% for switch in switch_list %}
-        <div class="row" style="width: 60%">
+        <div class="row" style="width: 80%">
             <div class="switch">
-                <span class="col-sm-4">switch: {{ switch[1] }}</span>
-                <label id="select_normalize_div" class="col-sm-4" onchange="update_switch( '{{ switch[0] }}' )">
+                <span class="col-sm-5">switch: {{ switch[1] }}</span>
+                <label class="col-sm-5" onchange="update_switch( '{{ switch[0] }}' )">
                     Off
                     <input type="checkbox" value="false" id="s_{{ switch[0] }}">
                     <span class="lever"></span>
                     On
                 </label>
-                <div class="col-sm-4">
+                <div class="col-sm-2">
                     <button id="swich_button_" class="waves-effect waves-dark btn " type="button">
                         <a href="./{{ switch[0] }}/switch">Change</a>
                     </button>
                 </div>
             </div>
+            <input type="hidden" id="pin_{{ switch[0] }}" value="{{ switch[2] }}">
         </div>
         {% endfor %}
 
 
     </div>
+    {% endif %}
+
+
 </div>
 {% include 'footer.html' %}
 </body>
+
 <script>
+
+    function get_request(pin, id) {
+        var request = new XMLHttpRequest();
+
+        var url = '{{ blynk_host }}{{ token }}/' + "get/" + pin;
+
+        request.open('GET', url);
+
+        request.onreadystatechange = function () {
+            if (this.readyState === 4) {
+                var value = this.responseText[2];
+                var id_name = 's_' + id;
+                if (value == '1') {
+                    document.getElementById(id_name).value = "true";
+                    $('#' + id_name).attr("checked", true);
+                } else {
+                    document.getElementById(id_name).value = "false";
+                    $('#' + id_name).attr("checked", false);
+                }
+            }
+        };
+
+        request.send();
+    };
+
     function update_switch(id) {
         id_name = 's_' + id;
-        console.log(document.getElementById(id_name).value);
+
         document.getElementById(id_name).value = !(document.getElementById(id_name).value == "true");
 
+        var v = (document.getElementById(id_name).value == "true") ? 1 : 0;
+        var pin = $('#pin_' + id).val();
 //        Send request
-    }
+        send_request(v, pin);
+
+    };
 </script>
 
-<!--<script type="text/javascript">-->
-<!--$(document).ready(function () {-->
-<!--$('#submit').click(function () {-->
-<!--console.log("click");-->
+<script type="text/javascript">
+    function send_request(value, pin) {
 
+        var request = new XMLHttpRequest();
+        var url = '{{ blynk_host }}{{ token }}/' + "update/" + pin + "?value=" + value;
 
-<!--var request = new XMLHttpRequest();-->
+        request.open('GET', url);
 
-<!--request.open('GET', 'http://188.166.206.43/8000fc09e23f49c68325e4d7c2c718f2/update/D12?value=1');-->
+        request.onreadystatechange = function () {
+            if (this.readyState === 4) {
+//                console.log('Status:', this.status);
+//                console.log('Headers:', this.getAllResponseHeaders());
+//                console.log('Body:', this.responseText);
+            }
+        };
 
-<!--request.onreadystatechange = function () {-->
-<!--if (this.readyState === 4) {-->
-<!--console.log('Status:', this.status);-->
-<!--console.log('Headers:', this.getAllResponseHeaders());-->
-<!--console.log('Body:', this.responseText);-->
-<!--}-->
-<!--};-->
+        request.send();
+    };
+</script>
 
-<!--request.send();-->
-<!--});-->
-<!--});-->
-<!--</script>-->
+{% for switch in switch_list %}
+<script>
+    var value = get_request("{{ switch[2] }}", "{{ switch[0] }}");
+</script>
+{% endfor %}
+
 </html>

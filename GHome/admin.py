@@ -8,7 +8,7 @@ bp = Blueprint("admin", __name__, url_prefix="/admin")
 @bp.route("/")
 @login_required
 def index():
-    users = handler.get_token()
+    users = handler.get_tokens()
     users_list = []
     for user in users:
         user_id = user['id']

@@ -1,6 +1,6 @@
 from GHome.db import get_db
 
-def get_token():
+def get_tokens():
     db = get_db()
     token = db.execute(
         "SELECT * FROM token"
@@ -86,3 +86,10 @@ def delete_token(id):
         (id,)
     )
     db.commit()
+
+def get_token(username):
+    db = get_db()
+    token = db.execute(
+        "SELECT * FROM token WHERE username = ?", (username,)
+    ).fetchone()
+    return token

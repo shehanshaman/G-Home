@@ -1,9 +1,19 @@
+{% if g.user['is_verified'] == 2 %}
+    {#    Google Login#}
+    <meta name="google-signin-scope" content="profile email">
+
+    <meta name="google-signin-client_id"
+          content="714190011560-iq9odnvd1oed7ui0m5jh6dln4o979l28.apps.googleusercontent.com">
+{% endif %}
+
 <nav>
     <div class="nav-wrapper">
-        <a href="#" class="brand-logo">Smart Home</a>
+        <a href="{{ url_for('home.index') }}" class="brand-logo">Google Home</a>
         <ul id="nav-mobile" class="right hide-on-med-and-down">
-            <li><a href="{{ url_for('home.index') }}">Home</a></li>
-            <li><a href="{{ url_for('admin.index') }}">Admin</a></li>
+            <li><a href="">{{ g.user['given_name'] }}</a></li>
+            {% if g.user['is_admin'] %}
+                <li><a href="{{ url_for('admin.index') }}">Settings</a></li>
+            {% endif %}
             <li><a href="#" onclick="signOut()">Sign Out</a></li>
         </ul>
     </div>

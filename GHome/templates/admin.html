@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/materialize.min.css') }}">
+
+    <style>
+        a, a:hover {
+            color: white;
+            text-decoration: none;
+        }
+
+        .modal {
+            bottom: inherit;
+        }
+
+        .modal-content {
+            position: initial;
+            background-color: inherit;
+            border-radius: inherit;
+            border: inherit;
+        }
+
+        .page-footer {
+            padding-top: 0px;
+        }
+    </style>
+</head>
+<body>
+{% include 'nav_bar.html' %}
+
+<div class="container limiter" style="min-height: 427px;">
+
+    <div id="modal1" class="modal">
+        <form action="{{ url_for('admin.add_token') }}" method="POST">
+            <div class="modal-content">
+                <h4>Create New User</h4>
+
+                <div class="row">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <p>Username</p>
+                        </div>
+                        <div class="time col-sm-6">
+                            <input name="username" id="username" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <p>Token</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <input name="auth_token" id="auth_token" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn modal-trigger" type="submit">Submit</button>
+                <a href="#!" class="modal-close waves-effect waves-green btn-flat">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-3">
+            <h5 class="card__title" style="text-align: left;color: #26a69a;">Scheduler: </h5>
+        </div>
+        {% if scheduler_state %}
+        <div class="col-sm-4">
+            <h5 class="col-sm-6" style="text-align: left; color: green">Running</h5>
+            <a class="col-sm-6" href="{{ url_for('admin.change_scheduler') }}?s=0" style="color: blue; margin-top: 27px">Stop</a>
+        </div>
+
+        {% else %}
+        <div class="col-sm-4">
+            <h5 class="col-sm-6" style="text-align: left; color: red">Stopped</h5>
+            <a class="col-sm-6" href="{{ url_for('admin.change_scheduler') }}?s=1" style="color: blue; margin-top: 27px">Start</a>
+        </div>
+
+        {% endif %}
+
+    </div>
+
+    <div class="step-content">
+        <div class="row head-word">
+            <h3 id="h3-head-1" class="card__title" style="text-align: left;color: #26a69a;font-family: monospace;">
+                Settings: Tokens</h3>
+        </div>
+    </div>
+
+    <div class="row" style="border: 2px solid #26a69a;padding: 30px; border-radius: 25px;">
+        {% for user in users_list %}
+        <div class="row" style="width: 100%" id="user_{{ user[0] }}">
+            <div class="col-sm-4">
+                <label>{{ user[1] }}</label>
+            </div>
+            <div class="col-sm-4">
+                <label>{{ user[2] }}</label>
+            </div>
+            <div class="col-sm-2">
+                <button id="user_switch" class="waves-effect waves-dark btn" type="button"
+                ><a href="./{{ user[1] }}/">More</a>
+                </button>
+            </div>
+            <div class="col-sm-2">
+                <button id="delete_user" class="waves-effect waves-dark btn " type="button"
+                        onclick="delete_token('{{ user[0] }}')">
+                    Delete
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+        <div class="row center">
+            <button data-target="modal1" class="btn modal-trigger" onclick="add_user_modal()">Create New User</button>
+        </div>
+    </div>
+
+
+</div>
+{% include 'footer.html' %}
+</body>
+
+<script>
+
+    function delete_token(id) {
+
+        $.get("./delete/token", {id: id}, function (data, status) {
+            $('#user_' + id).remove();
+        });
+    }
+
+    function add_user_modal() {
+        $('#modal1').openModal();
+    }
+</script>
+</html>

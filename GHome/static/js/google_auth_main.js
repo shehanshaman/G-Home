@@ -1,6 +1,6 @@
 $(document).ready(function () {
-    $(".dropdown-trigger").dropdown();
-    $('.sidenav').sidenav();
+    // $(".dropdown-trigger").dropdown();
+    // $('.sidenav').sidenav();
 });
 
 function onLoad() {

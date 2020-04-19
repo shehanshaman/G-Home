@@ -1,6 +1,8 @@
 import os
 from flask import Flask
 
+from apscheduler.schedulers.background import BackgroundScheduler
+
 def create_app(test_config=None):
     """Create and configure an instance of the Flask application."""
     app = Flask(__name__, instance_relative_config=True)
@@ -8,6 +10,11 @@ def create_app(test_config=None):
         # a default secret that should be overridden by instance config
         SECRET_KEY="dev",
         DATABASE=os.path.join(app.instance_path, "GHome.sqlite"),
+        # BLYNK_HOST = "http://188.166.206.43/",
+        BLYNK_HOST = 'http://127.0.0.1:5555/',
+        SCHEDULER = BackgroundScheduler(),
+
+        SCHEDULER_STATE = 0,
     )
 
     try:
@@ -19,10 +26,11 @@ def create_app(test_config=None):
 
     db.init_app(app)
 
-    from GHome import home, auth
+    from GHome import home, auth, admin
 
     app.register_blueprint(home.bp)
     app.register_blueprint(auth.bp)
+    app.register_blueprint(admin.bp)
 
     app.add_url_rule("/", endpoint="index")
 

@@ -50,9 +50,14 @@ def create_app(test_config=None):
 
     #Adding mysql Server
     app.config['MYSQL_DATABASE_HOST'] = 'localhost'
-    app.config['MYSQL_DATABASE_USER'] = 'root'
-    app.config['MYSQL_DATABASE_PASSWORD'] = ''
-    app.config['MYSQL_DATABASE_DB'] = 'ghome'
+    # app.config['MYSQL_DATABASE_USER'] = 'root'
+    # app.config['MYSQL_DATABASE_PASSWORD'] = ''
+    # app.config['MYSQL_DATABASE_DB'] = 'ghome'
+
+    app.config['MYSQL_DATABASE_HOST'] = 'db4free.net'
+    app.config['MYSQL_DATABASE_DB'] = 'ghome2020'
+    app.config['MYSQL_DATABASE_USER'] = 'shehanshaman'
+    app.config['MYSQL_DATABASE_PASSWORD'] = 'shanaka22'
 
     mysql = MySQL(cursorclass=DictCursor)
     mysql.init_app(app)

@@ -5,7 +5,7 @@ import random
 from datetime import datetime
 
 
-from flask import Blueprint, current_app
+from flask import Blueprint, current_app, jsonify
 from flask import flash
 from flask import g
 from flask import redirect
@@ -46,9 +46,10 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
-        g.user = (
-            get_db().execute("SELECT * FROM user WHERE id = ?", (user_id,)).fetchone()
-        )
+        db = get_db()
+        cur = db.cursor()
+        cur.execute("SELECT * FROM user WHERE id = %s", (user_id,))
+        g.user = cur.fetchone()
 
 @bp.route("/register", methods=("GET", "POST"))
 def register():
@@ -69,11 +70,13 @@ def register():
             error = "Username is required."
         elif not password:
             error = "Password is required."
-        elif (
-            db.execute("SELECT id FROM user WHERE username = ?", (username,)).fetchone()
-            is not None
-        ):
-            error = "User {0} is already registered.".format(username)
+        else:
+            cur = db.cursor()
+            cur.execute("SELECT id FROM user WHERE username = %s", (username,))
+            user = cur.fetchone()
+
+            if user is not None:
+                error = "User {0} is already registered.".format(username)
 
         if error is None:
             # the name is available, store it in the database and go to
@@ -83,8 +86,9 @@ def register():
             if "@" in username:
                 user_id = UserData.get_user_id(username)
                 verify_key = randomString()
-                db.execute(
-                    "INSERT INTO verify (user_id, subject, verify_key) VALUES (?, ?, ?)",
+                cur = db.cursor()
+                cur.execute(
+                    "INSERT INTO verify (user_id, subject, verify_key) VALUES (%s, %s, %s)",
                     (user_id, 'verify', verify_key),
                 )
                 db.commit()
@@ -108,9 +112,17 @@ def login():
         password = request.form["password"]
         db = get_db()
         error = None
-        user = db.execute(
-            "SELECT * FROM user WHERE username = ?", (username,)
-        ).fetchone()
+
+        cur = db.cursor()
+        cur.execute(
+            "SELECT * FROM user WHERE username = %s", (username)
+        )
+        user = cur.fetchone()
+
+        # cur.execute(
+        #     "INSERT INTO `trigger` (switch_id, value, time) VALUES(10, 1, 260)"
+        # )
+        # db.commit()
 
         if user is None:
             error = "Incorrect username."
@@ -123,7 +135,7 @@ def login():
             # store the user id in a new session and return to the index
             session.clear()
             session["user_id"] = user["id"]
-            update_last_login(db, user["id"])
+            update_last_login(db, int(user["id"]))
             return redirect(url_for("index"))
 
         flash(error)
@@ -145,16 +157,15 @@ def glogin():
     image_url = request.form["image_url"]
 
     db = get_db()
-    user = db.execute(
-        "SELECT * FROM user WHERE username = ?", (email,)
-    ).fetchone()
+    db.execute(
+        "SELECT * FROM user WHERE username = %s", (email,)
+    )
+    user = db.fetchone()
+    db.close()
 
     if user is None:
         # Register User
         create_user_db(db, email, profile_id, given_name, image_url, 2)
-        user = db.execute(
-            "SELECT * FROM user WHERE username = ?", (email,)
-        ).fetchone()
 
     else:
         # Update user last login
@@ -171,9 +182,11 @@ def verify():
     verify_key = request.args.get('key')
 
     db = get_db()
-    verify_data = db.execute(
-        "SELECT * FROM verify WHERE user_id = ? AND subject = 'verify'", (user_id,)
-    ).fetchone()
+    cur = db.cursor()
+    cur.execute(
+        "SELECT * FROM verify WHERE user_id = %s AND subject = 'verify'", (user_id,)
+    )
+    verify_data = cur.fetchone()
 
     e = ["Not Found",[]]
 
@@ -181,14 +194,17 @@ def verify():
         e[1].append("Not registered user.")
 
     elif verify_key == verify_data['verify_key']:
-        db.execute(
-            "UPDATE user SET is_verified = ? WHERE id = ?",
+        db = get_db()
+        cur = db.cursor()
+        cur.execute(
+            "UPDATE `user` SET is_verified = %s WHERE id = %s",
             (1, user_id),
         )
         db.commit()
 
-        db.execute(
-            "DELETE FROM verify WHERE user_id = ? AND subject = 'verify'",
+        cur = db.cursor()
+        cur.execute(
+            "DELETE FROM verify WHERE user_id = %s AND subject = 'verify'",
             (user_id),
         )
         db.commit()
@@ -206,9 +222,11 @@ def reset_request():
     if request.method == "POST":
         username = request.form["username"]
         db = get_db()
-        user = db.execute(
-            "SELECT * FROM user WHERE username = ? AND is_verified = 1", (username,)
-        ).fetchone()
+        cur = db.cursor()
+        cur.execute(
+            "SELECT * FROM `user` WHERE username = %s AND is_verified = 1", (username,)
+        )
+        user = cur.fetchone()
 
         if user is None:
             flash("Wrong username.")
@@ -218,8 +236,9 @@ def reset_request():
 
         verify_key = randomString()
 
-        db.execute(
-            "INSERT INTO verify (user_id, subject, verify_key) VALUES (?, ?, ?)",
+        cur = db.cursor()
+        cur.execute(
+            "INSERT INTO verify (user_id, subject, verify_key) VALUES (%s, %s, %s)",
             (user_id, 'reset', verify_key),
         )
         db.commit()
@@ -242,22 +261,26 @@ def reset_key_verify():
 
         #Update password
         db = get_db()
-        db.execute(
-            "UPDATE user SET password = ? WHERE username = ?",
+        cur = db.cursor()
+        cur.execute(
+            "UPDATE `user` SET password = %s WHERE username = %s",
             (generate_password_hash(password), username),
         )
         db.commit()
 
         #Get user id
-        user = db.execute(
-            "SELECT * FROM user WHERE username = ?", (username,)
-        ).fetchone()
+        cur = db.cursor()
+        user = cur.execute(
+            "SELECT * FROM `user` WHERE username = %s", (username,)
+        )
+        user = cur.fetchone()
 
         user_id = int(user['id'])
 
         #Delete query in verify
-        db.execute(
-            "DELETE FROM verify WHERE user_id = ? AND subject = 'reset'",
+        cur = db.cursor()
+        cur.execute(
+            "DELETE FROM verify WHERE user_id = %s AND subject = 'reset'",
             (user_id,)
         )
         db.commit()
@@ -270,9 +293,11 @@ def reset_key_verify():
     verify_key = request.args.get('key')
 
     db = get_db()
-    verify_data = db.execute(
-        "SELECT * FROM verify WHERE user_id = ? AND subject = 'reset' ORDER BY id DESC", (user_id,)
-    ).fetchone()
+    cur = db.cursor()
+    cur.execute(
+        "SELECT * FROM verify WHERE user_id = %s AND subject = 'reset' ORDER BY id DESC", (user_id,)
+    )
+    verify_data = cur.fetchone()
 
     if verify_data is None:
         flash("You don't request for reset.")
@@ -282,9 +307,11 @@ def reset_key_verify():
 
         flash("Your email has been verified, Enter new password.")
 
-        user = db.execute(
-            "SELECT * FROM user WHERE id = ?", (user_id,)
-        ).fetchone()
+        cur = db.cursor()
+        cur.execute(
+            "SELECT * FROM `user` WHERE id = %s", (user_id,)
+        )
+        user = cur.fetchone()
 
         return render_template("auth/reset.html", email = user["username"])
 
@@ -293,8 +320,9 @@ def reset_key_verify():
         return redirect(url_for("auth.login"))
 
 def create_user_db(db, username, password, given_name, image_url, is_verified):
-    db.execute(
-        "INSERT INTO user (username, password, given_name, image_url, last_login, is_verified) VALUES (?, ?, ?, ?, ?,?)",
+    cur = db.cursor()
+    cur.execute(
+        "INSERT INTO `user` (username, password, given_name, image_url, last_login, is_verified) VALUES (%s, %s, %s, %s, %s,%s)",
         (username, generate_password_hash(password), given_name, image_url, datetime.now(), is_verified),
     )
     db.commit()
@@ -302,8 +330,9 @@ def create_user_db(db, username, password, given_name, image_url, is_verified):
     return True
 
 def update_last_login(db, user_id):
-    db.execute(
-        "UPDATE user SET last_login = ? WHERE id = ?",
+    cur = db.cursor()
+    cur.execute(
+        "UPDATE `user` SET last_login = %s WHERE id = %s",
         (datetime.now(), user_id),
     )
     db.commit()
@@ -329,19 +358,23 @@ def randomString(stringLength=10):
 
 def get_mail_message(subject):
     db = get_db()
-    m = db.execute(
-        "SELECT message FROM mail_template WHERE subject = ?",
+    cur = db.cursor()
+    cur.execute(
+        "SELECT message FROM mail_template WHERE subject = %s",
         (subject,),
-    ).fetchone()
+    )
+    m = cur.fetchone()
     return m['message']
 
 class UserData:
 
     def get_user_id(username):
         db = get_db()
-        user = db.execute(
-            "SELECT * FROM user WHERE username = ?", (username,)
-        ).fetchone()
+        cur = db.cursor()
+        cur.execute(
+            "SELECT * FROM `user` WHERE username = %s", (username,)
+        )
+        user = cur.fetchone()
         if user is not None:
             return user["id"]
         return None

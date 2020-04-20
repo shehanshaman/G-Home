@@ -1,5 +1,6 @@
 import os
 from flask import Flask
+from flaskext.mysql import MySQL
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -13,8 +14,8 @@ def create_app(test_config=None):
         # a default secret that should be overridden by instance config
         SECRET_KEY="dev",
         DATABASE=os.path.join(app.instance_path, "GHome.sqlite"),
-        BLYNK_HOST = "http://188.166.206.43/",
-        # BLYNK_HOST = 'http://127.0.0.1:5555/',
+        # BLYNK_HOST = "http://188.166.206.43/",
+        BLYNK_HOST = 'http://127.0.0.1:5555/',
         SCHEDULER = BackgroundScheduler(),
 
         SCHEDULER_STATE = 0,
@@ -29,6 +30,7 @@ def create_app(test_config=None):
 
     from GHome import db
     from flask_mail import Mail
+    from pymysql.cursors import DictCursor
 
     db.init_app(app)
 
@@ -45,6 +47,17 @@ def create_app(test_config=None):
     mail.init_app(app)
 
     app.config["APP_ALZ"].mail = mail
+
+    #Adding mysql Server
+    app.config['MYSQL_DATABASE_HOST'] = 'localhost'
+    app.config['MYSQL_DATABASE_USER'] = 'root'
+    app.config['MYSQL_DATABASE_PASSWORD'] = ''
+    app.config['MYSQL_DATABASE_DB'] = 'ghome'
+
+    mysql = MySQL(cursorclass=DictCursor)
+    mysql.init_app(app)
+
+    app.config["APP_ALZ"].db = mysql
 
     from GHome import home, auth, admin
 

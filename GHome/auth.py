@@ -50,6 +50,7 @@ def load_logged_in_user():
         cur = db.cursor()
         cur.execute("SELECT * FROM user WHERE id = %s", (user_id,))
         g.user = cur.fetchone()
+        cur.close()
 
 @bp.route("/register", methods=("GET", "POST"))
 def register():
@@ -74,6 +75,7 @@ def register():
             cur = db.cursor()
             cur.execute("SELECT id FROM user WHERE username = %s", (username,))
             user = cur.fetchone()
+            cur.close()
 
             if user is not None:
                 error = "User {0} is already registered.".format(username)
@@ -92,6 +94,7 @@ def register():
                     (user_id, 'verify', verify_key),
                 )
                 db.commit()
+                cur.close()
                 url = "http://" + str(request.host) + "/auth/verify/?id=" + str(user_id) + "&key=" + verify_key
                 send_mail("verify", url, username, "Verify email address")
 
@@ -118,6 +121,7 @@ def login():
             "SELECT * FROM user WHERE username = %s", (username)
         )
         user = cur.fetchone()
+        cur.close()
 
         # cur.execute(
         #     "INSERT INTO `trigger` (switch_id, value, time) VALUES(10, 1, 260)"
@@ -187,6 +191,7 @@ def verify():
         "SELECT * FROM verify WHERE user_id = %s AND subject = 'verify'", (user_id,)
     )
     verify_data = cur.fetchone()
+    cur.close()
 
     e = ["Not Found",[]]
 
@@ -201,6 +206,7 @@ def verify():
             (1, user_id),
         )
         db.commit()
+        cur.close()
 
         cur = db.cursor()
         cur.execute(
@@ -208,6 +214,7 @@ def verify():
             (user_id),
         )
         db.commit()
+        cur.close()
         flash("Your email has been verified.")
         return redirect(url_for("auth.login"))
 
@@ -227,6 +234,7 @@ def reset_request():
             "SELECT * FROM `user` WHERE username = %s AND is_verified = 1", (username,)
         )
         user = cur.fetchone()
+        cur.close()
 
         if user is None:
             flash("Wrong username.")
@@ -242,6 +250,7 @@ def reset_request():
             (user_id, 'reset', verify_key),
         )
         db.commit()
+        cur.close()
         url = "http://" + str(request.host) + "/auth/reset/?id=" + str(user_id) + "&key=" + verify_key
         send_mail("reset", url, username, "Reset Password G-Home")
 
@@ -267,13 +276,15 @@ def reset_key_verify():
             (generate_password_hash(password), username),
         )
         db.commit()
+        cur.close()
 
         #Get user id
         cur = db.cursor()
-        user = cur.execute(
+        cur.execute(
             "SELECT * FROM `user` WHERE username = %s", (username,)
         )
         user = cur.fetchone()
+        cur.close()
 
         user_id = int(user['id'])
 
@@ -284,6 +295,7 @@ def reset_key_verify():
             (user_id,)
         )
         db.commit()
+        cur.close()
 
         flash("Your password has been reset.")
         return redirect(url_for("auth.login"))
@@ -298,6 +310,7 @@ def reset_key_verify():
         "SELECT * FROM verify WHERE user_id = %s AND subject = 'reset' ORDER BY id DESC", (user_id,)
     )
     verify_data = cur.fetchone()
+    cur.close()
 
     if verify_data is None:
         flash("You don't request for reset.")
@@ -312,6 +325,7 @@ def reset_key_verify():
             "SELECT * FROM `user` WHERE id = %s", (user_id,)
         )
         user = cur.fetchone()
+        cur.close()
 
         return render_template("auth/reset.html", email = user["username"])
 
@@ -326,6 +340,7 @@ def create_user_db(db, username, password, given_name, image_url, is_verified):
         (username, generate_password_hash(password), given_name, image_url, datetime.now(), is_verified),
     )
     db.commit()
+    cur.close()
 
     return True
 
@@ -336,6 +351,7 @@ def update_last_login(db, user_id):
         (datetime.now(), user_id),
     )
     db.commit()
+    cur.close()
 
 def send_mail(subject, url, recipient, senders_subject):
     msg = Message(senders_subject,
@@ -364,6 +380,7 @@ def get_mail_message(subject):
         (subject,),
     )
     m = cur.fetchone()
+    cur.close()
     return m['message']
 
 class UserData:
@@ -375,6 +392,7 @@ class UserData:
             "SELECT * FROM `user` WHERE username = %s", (username,)
         )
         user = cur.fetchone()
+        cur.close()
         if user is not None:
             return user["id"]
         return None

@@ -54,10 +54,16 @@ def create_app(test_config=None):
     # app.config['MYSQL_DATABASE_PASSWORD'] = ''
     # app.config['MYSQL_DATABASE_DB'] = 'ghome'
 
-    app.config['MYSQL_DATABASE_HOST'] = 'db4free.net'
-    app.config['MYSQL_DATABASE_DB'] = 'ghome2020'
-    app.config['MYSQL_DATABASE_USER'] = 'shehanshaman'
-    app.config['MYSQL_DATABASE_PASSWORD'] = 'shanaka22'
+    # app.config['MYSQL_DATABASE_HOST'] = 'db4free.net'
+    # app.config['MYSQL_DATABASE_DB'] = 'ghome2020'
+    # app.config['MYSQL_DATABASE_USER'] = 'shehanshaman'
+    # app.config['MYSQL_DATABASE_PASSWORD'] = 'shanaka22'
+
+    #heroku
+    app.config['MYSQL_DATABASE_HOST'] = 'us-cdbr-iron-east-01.cleardb.net'
+    app.config['MYSQL_DATABASE_DB'] = 'heroku_065f393ee3c95b3'
+    app.config['MYSQL_DATABASE_USER'] = 'b9e2007a0442f0'
+    app.config['MYSQL_DATABASE_PASSWORD'] = '412c623d'
 
     mysql = MySQL(cursorclass=DictCursor)
     mysql.init_app(app)

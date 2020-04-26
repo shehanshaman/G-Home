@@ -41,7 +41,7 @@ def create_app(test_config=None):
         "MAIL_USE_TLS": False,
         "MAIL_USE_SSL": True,
         "MAIL_USERNAME": 'shamanmario95@gmail.com',
-        "MAIL_PASSWORD": 'mniShehan'
+        "MAIL_PASSWORD": 'Shehan123'
     }
     app.config.update(mail_settings)
     mail.init_app(app)
